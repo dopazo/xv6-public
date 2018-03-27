@@ -89,3 +89,7 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+//implementacion del getprocs
+int sys_getprocs(void){
+  return runningProcs();
+}

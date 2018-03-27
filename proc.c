@@ -532,3 +532,15 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+//aca la implementacion del runningProcs()
+int runningProcs(){
+	struct proc *p;
+	int procsCounter=0;
+
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		if(p->state != UNUSED)
+			procsCounter++;
+	}
+	return procsCounter;
+}
