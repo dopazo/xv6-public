@@ -535,6 +535,7 @@ procdump(void)
 
 int physicalAddress(void){
   struct proc *p = myproc();
-  int procPageDir = (int)p -> pgdir;
-  return procPageDir;
+  //int procPageDir = (int)p -> pgdir;
+  int procPTE = (int)PTE_ADDR(p -> pgdir);
+  return procPTE;
 }
