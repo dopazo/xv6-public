@@ -7,7 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 
-int number_tickets=0;
+int totalTickets=0;
 int random(int max);
 
 
@@ -82,9 +82,9 @@ allocproc(void)
 
   acquire(&ptable.lock);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) //recorre la tabla de procesos
     if(p->state == UNUSED)
-      goto found;
+      goto found; //al encontrar uno no usado goto found
 
   release(&ptable.lock);
   return 0;
@@ -92,8 +92,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->tickets=100;
-  number_tickets+=100;
+  p->tickets=100; //sumarle 100 tickets al proceso
+  totalTickets+=100; //agregarlos al total de tickets
 
   release(&ptable.lock);
 
@@ -236,7 +236,7 @@ exit(void)
   struct proc *curproc = myproc();
   struct proc *p;
   int fd;
-  number_tickets-=100;
+  totalTickets-=100; //al terminar el proceso, restar del total de tickets
 
   if(curproc == initproc)
     panic("init exiting");
@@ -341,9 +341,9 @@ scheduler(void)
     //process* processes= <something>;
     //process* current=processes;
     int counter=0;
-    srand(time(NULL));
-    int winner=random(number_tickets);
+    int winner=random(totalTickets);
 
+    //https://01siddharth.blogspot.com/2018/04/implementing-lottery-scheduling-on-xv6.html
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
@@ -351,13 +351,9 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-    while(current!=NULL){
-    	counter+=current->tickets;
-    	if(counter>winner){break;}
-    	current=current->next;
-    }
-    //METER WHILE ACA(?)
-
+    
+    	counter+=p->tickets;
+    	if(counter<winner){continue;} //saltarse el proceso hasta llegar al ganador
 
       c->proc = p; //proceso actual es p
       switchuvm(p);
@@ -369,6 +365,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
+      break; //no ejecutar el sgte al que ejecutamos
     }
     release(&ptable.lock);
 
@@ -557,9 +554,11 @@ procdump(void)
 //generate random number
 
 static unsigned long x = 1;
+int srandom=0;
 
 int random(int max){
 	unsigned long a = 1103515245, c = 12345;
-	x = a*x+c;
+	x = a*(x+srandom)+c+srandom; //intento de crear numero random que vaya variando
+  srandom++;
 	return (unsigned int)(x/65536)%(max+1);
 }
