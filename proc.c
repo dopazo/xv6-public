@@ -8,6 +8,7 @@
 #include "spinlock.h"
 
 int number_tickets=0;
+int random(int max);
 
 
 struct {
@@ -337,10 +338,11 @@ scheduler(void)
     sti();
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-
+    //process* processes= <something>;
+    //process* current=processes;
     int counter=0;
     srand(time(NULL));
-    int winner=rand()%(number_tickets);
+    int winner=random(number_tickets);
 
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -349,7 +351,11 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-    //while(current
+    while(current!=NULL){
+    	counter+=current->tickets;
+    	if(counter>winner){break;}
+    	current=current->next;
+    }
     //METER WHILE ACA(?)
 
 
@@ -545,4 +551,15 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+
+//generate random number
+
+static unsigned long x = 1;
+
+int random(int max){
+	unsigned long a = 1103515245, c = 12345;
+	x = a*x+c;
+	return (unsigned int)(x/65536)%(max+1);
 }
